@@ -1,21 +1,26 @@
-'''
-It verifies a self-verified file
-Usage:
-> python3 verify_svf.py <input-file> <name>
-> python3 verify_svf.py <input-file> <name> <output-file>
-'''
-
 import hashlib
 import sys
-import os
 import json
 from jwcrypto import jwk, jws
 from didself import registry
 
+
+def generate_svci_header(input, jwk_key, did):
+    sha256 = hashlib.sha256() 
+    sha256.update(input.encode())
+    metadata = {
+        'name': did.split(":")[2],
+        'sha-256':sha256.hexdigest()
+    }
+    key = jwk.JWK(**jwk_key)
+    jws_payload = json.dumps(metadata)
+    proof = jws.JWS(jws_payload.encode('utf-8'))
+    proof.add_signature(key, None, json.dumps({"alg": "EdDSA"}),None)  
+    return metadata, proof.serialize(compact=True) 
+
 def verify_svci(input, name):
     _input = input.split('\n',1)
     _header = _input[0]
-    print(_header)
     data = _input[1]
     header = json.loads(_header)
     document = header[0]
@@ -45,21 +50,3 @@ def verify_svci(input, name):
         proof.verify(key)
     except:
         return False
-
-
-def main():
-    if (len(sys.argv) != 3 and len(sys.argv) != 4 ):
-        print("Usage: verify_svf.py <input-file> <name>")
-        print("Usage: verify_svf.py <input-file> <name> <output-file>")
-        exit(os.EX_USAGE)
-
-    with open(sys.argv[1], "r") as _file:
-        input_file = _file.read()
-    
-    name = sys.argv[2]
-    result = verify_svci(input_file, name)
-    print(result)
-
-if __name__ == "__main__":
-    main()
-    exit(os.EX_OK)
