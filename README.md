@@ -11,4 +11,4 @@ This will install `jwcrypto` and `didself` package.
 You can find example code in `example.py`
 
 ## Documentation
-Refer to the [Package documentation](didself/README.md)
+Refer to the [Package documentation](package/README.md)
