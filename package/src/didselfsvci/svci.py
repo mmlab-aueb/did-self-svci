@@ -35,7 +35,11 @@ def verify_svci(input, name):
     if(document['id'].split(":")[2] != name):
         return False
     ###---Check the DID document
-    if(not registry.verify(document,document_proof)):
+    owner_registry = registry.DIDSelfRegistry(jwk.JWK.generate(kty='EC', crv='P-256'))
+    try:
+        owner_registry.load(document,document_proof)
+    except:
+        print("Cannot validate DID document")
         return False
      ###---Check the metadata hash---
     sha256 = hashlib.sha256() 
